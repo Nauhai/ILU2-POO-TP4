@@ -1,15 +1,63 @@
 package scenarioTest;
 
 import personnages.Gaulois;
-import villagegauloisold.Etal;
+import produit.Poisson;
+import produit.Produit;
+import produit.Sanglier;
+import villagegaulois.IVillage;
+import villagegauloisold.DepenseMarchand;
+import villagegaulois.Etal;
 
 public class Scenario {
 
 	public static void main(String[] args) {
 
-		// TODO Partie 4 : creer de la classe anonyme Village
-
-		// fin
+		IVillage village = new IVillage() {
+			private static final int NB_ETALS_MAX = 5;
+			private Etal[] etals = new Etal[NB_ETALS_MAX];
+			private int nbEtal = 0;
+			
+			@Override
+			public <P extends Produit> boolean installerVendeur(Etal<P> etal, Gaulois vendeur,
+					P[] produit, int prix) {
+				if (nbEtal < NB_ETALS_MAX) {
+					etal.installerVendeur(vendeur, produit, prix);
+					etals[nbEtal++] = etal;
+					return true;
+				} else {
+					return false;
+				}
+			}
+			
+			@Override
+			public DepenseMarchand[] acheterProduit(String produit, int quantiteSouhaitee) {
+				DepenseMarchand[] depenses = new DepenseMarchand[nbEtal];
+				int i = 0;
+				int achetes = 0;
+				int numEtal = 0;
+				while (achetes < quantiteSouhaitee && numEtal < nbEtal) {
+					int dispo = etals[numEtal].contientProduit(produit, quantiteSouhaitee-achetes);
+					if (dispo > 0) {
+						double prix = etals[numEtal].acheterProduit(dispo);
+						depenses[i] = new DepenseMarchand(etals[numEtal].getVendeur(), dispo, produit, prix);
+						i++;
+						achetes+=dispo;
+					}
+					numEtal++;
+				}
+				return depenses;
+			}
+			
+			@Override
+			public String toString() {
+				StringBuilder builder = new StringBuilder();
+				for (int i = 0; i < nbEtal; i++) {
+					builder.append(etals[i].etatEtal());
+					builder.append("\n");
+				}
+				return builder.toString();
+			}
+		};
 
 		Gaulois ordralfabetix = new Gaulois("Ordralfabétix", 9);
 		Gaulois obelix = new Gaulois("Obélix", 20);
